@@ -1,8 +1,8 @@
 #########################################################################################################################################
 ## ######################################################################################################################################
-## CODE: ORBIT CALCULATOR DELOREAN (v2)
+## CODE: ORBIT CALCULATOR DELOREAN (v2) (update 18.01.2024)
 ## AUTHOR: MATIAS A. BLANA D.
-## CHILE, SANTIAGO NOVEMBER 2023
+## CHILE, SANTIAGO JANUARY (18.01.2024) 2024
 ## VERSION : MW DWARF SATELLITES INCLUDING MW MULTIPLE POTENTIALS and M31, AND Fornax Cluster potentials, WITH ORBITS WITH COSMIC EXPANSION OPTIONS
 ## SCRIPT  : MAIN SCRIPT THAT LOADS INTEGRATIONS ROUTINES, AND WHERET TO DEFINE OBSERVABLES 
 ## #######################################################################################################################################
@@ -395,44 +395,45 @@ def OrbProp_v1(objclass,orb):
     Rp       = [] # array with pericentres = dmin
     TRp      = [] # array with time of pericentres
     Tphi     = [] # array with 2pi angles
-    
-    for i in range(0,len(time)-2):
-        dr1 = r[i+1]-r[i]
-        dr2 = r[i+2]-r[i+1]
-        if (dr1>=0)and(dr2<=0): ## from increasing r to decreasing (apocentres), the (=) also works for circles (makes switch=False)
-            Ra.append(r[i+1])
-            TRa.append(time[i+1])
-            if phiswitch: 
-                phi0 = phi[i+1]
-                timephi0 = time[i+1]
-                # Tphi.append(time[i+1])
-                # print('phi switch1')
-            phiswitch = False
-        elif (dr1<=0)and(dr2>=0): ## from decreasing r to increasing (Pericentres), the (=) also works for circles (makes switch=False)
-            Rp.append(r[i+1])
-            TRp.append(time[i+1])
-            if phiswitch: 
-                phi0 = phi[i+1]
-                timephi0 = time[i+1]
-                # Tphi.append(time[i+1])
-                # print('phi switch2')
-            phiswitch = False
-            
-        if not phiswitch:
-            if time[i+1]!=timephi0:
-                rphi  = (phi - phi0) % 360
-                drphi1 = rphi[i+1] - rphi[i]
-                drphi2 = rphi[i+2] - rphi[i+1]
-                if drphi2<0 and drphi1>=0: # anti-clockwise orbits 
-                    # print('anti-clockwise')
-                    Tphi.append(time[i+1])
-                # elif drphi2>0 and drphi1<0: # clockwise orbits 
-                #     Tphi.append(time[i+1])
-                #     print('clockwise')
+
+    getorbperiod=False
+    getorbperiod=False
+    if getorbperiod:
+        for i in range(0,len(time)-2):
+            dr1 = r[i+1]-r[i]
+            dr2 = r[i+2]-r[i+1]
+            if (dr1>=0)and(dr2<=0): ## from increasing r to decreasing (apocentres), the (=) also works for circles (makes switch=False)
+                Ra.append(r[i+1])
+                TRa.append(time[i+1])
+                if phiswitch: 
+                    phi0 = phi[i+1]
+                    timephi0 = time[i+1]
+                    # Tphi.append(time[i+1])
+                    # print('phi switch1')
+                phiswitch = False
+            elif (dr1<=0)and(dr2>=0): ## from decreasing r to increasing (Pericentres), the (=) also works for circles (makes switch=False)
+                Rp.append(r[i+1])
+                TRp.append(time[i+1])
+                if phiswitch: 
+                    phi0 = phi[i+1]
+                    timephi0 = time[i+1]
+                    # Tphi.append(time[i+1])
+                    # print('phi switch2')
+                phiswitch = False
+
+            if not phiswitch:
+                if time[i+1]!=timephi0:
+                    rphi  = (phi - phi0) % 360
+                    drphi1 = rphi[i+1] - rphi[i]
+                    drphi2 = rphi[i+2] - rphi[i+1]
+                    if drphi2<0 and drphi1>=0: # anti-clockwise orbits 
+                        # print('anti-clockwise')
+                        Tphi.append(time[i+1])
+                    # elif drphi2>0 and drphi1<0: # clockwise orbits 
+                    #     Tphi.append(time[i+1])
+                    #     print('clockwise')
     orbprop = [[Rpmin,TRpmin,Ramax,TRamax,amajor,bminor,el], [Ra,TRa,Rp,TRp,Tphi] ]
     return orbprop
-
-
 
 
 #################################################################################################################################
@@ -524,14 +525,18 @@ def ExploreParam_v2(listobjs):
                 print("len(orbs_chunk[0][0])=",len(orbs_chunk[0][0])) 
                 # orbs          = np.concatenate(orbs_chunk)
                 orbs_chunk_new  = []
-                for j in range(0,len(orbs_chunk)):
-                    orb      = orbs_chunk[j][0][0] #Testorbit1.orbs[0][0][0]
-                    try:
-                        if objclass.orbprop: 
-                            orbprop  = orbs_chunk[j][0][1]
-                            orbs_chunk_new.append([orb,orbprop])
-                    except:
-                        orbs_chunk_new.append([orb])
+
+                for j1 in range(0,len(orbs_chunk)):
+                    for j2 in range(0,len(orbs_chunk[j1])):
+                        orb      = orbs_chunk[j1][j2][0] #Testorbit1.orbs[0][0][0]
+                        try:
+                            if objclass.orbprop: 
+                                orbprop  = orbs_chunk[j1][j2][1]
+                                orbs_chunk_new.append([orb,orbprop])
+                        except:
+                            orbs_chunk_new.append([orb])        
+                        
+                        
                 objclass.orbs = orbs_chunk_new   
                 
         elif (objclass.emcee.use): ## THIS BLOCK RUNS EMCEE TO FIT SOME PRE-DEFINED OBSERVABLE (if objclass.emcee.use=True) ###########
@@ -651,10 +656,10 @@ def ExploreParam_v2(listobjs):
 # from DELOREAN_ORBINT_v1 import FunInputOutput_v2,FunInputOutput_chunk_v2
 
 def log_posterior_v1(paramvar,objclass):
-    prior = log_prior_v1(paramvar, objclass.paramvarlim,objclass)
-    if not np.isfinite(prior):
+    log_prior = log_prior_v1(paramvar, objclass.paramvarlim,objclass)
+    if not np.isfinite(log_prior):
         return -np.inf
-    return prior + log_likelihood_v1(paramvar,objclass)
+    return log_prior + log_likelihood_v1(paramvar,objclass)
 
 # Define the log-prior function with limits for arbitrary number of parameters
 ## Function designed for Malin-1 problem
