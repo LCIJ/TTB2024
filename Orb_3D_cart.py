@@ -199,6 +199,6 @@ anim = animation.FuncAnimation(fig, animate, init_func=init,
 
 # anim.save('final_result.gif')
 writervideo = animation.FFMpegWriter(fps=20)
-anim.save('Anim3D_orb_cart_case1.mov', writer=writervideo)
+anim.save('Anim/Anim3D_orb_cart_case1.mov', writer=writervideo)
 
 plt.show()
